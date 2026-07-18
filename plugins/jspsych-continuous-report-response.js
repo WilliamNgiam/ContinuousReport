@@ -2,16 +2,17 @@
 
  * plugin for implementing a continuous report task, using the snap.io plugin.
  * written by Victoria J.H. Ritvo, 2019
+ * updated by William X.Q. Ngiam, 2026 (with assistance from Copilot)
 
  **/
 
 
-jsPsych.plugins["continuous_report"] = (function() {
+jsPsych.plugins["continuous-report-response"] = (function() {
 
   var plugin = {};
 
   plugin.info = {
-    name: 'continuous_report',
+    name: 'continuous-report-response',
     description: 'Uses Snap.svg to implement the continuous report task',
     parameters: {
       stimulus: {
@@ -57,6 +58,12 @@ jsPsych.plugins["continuous_report"] = (function() {
         default: null,
         description: 'stimulus condition'
       },
+      cueIndex: {
+        type: jsPsych.plugins.parameterType.INT,
+        pretty_name: 'Cue index',
+        default: null,
+        description: 'Index of the cued item location in the memory array'
+      },
     }
   }
 
@@ -72,7 +79,7 @@ jsPsych.plugins["continuous_report"] = (function() {
     var stimParameters = {};
 
     // get the image file location
-    var currStim = 'images/stim/' + trial.stimulus + '.svg';
+    var currStim = 'images/stim/circle.svg';
 
 
 
@@ -81,6 +88,7 @@ jsPsych.plugins["continuous_report"] = (function() {
     }
 
     // randomize the color wheel for this trial:
+    // this rotation is applied counterclockwise...matters later
     var randomColorVal = getRndInteger(1, 359); //359 because that's the 360th element, since it starts at 0.
     originalColorWheel = colors.colors;
     // step 1: slice at this number
@@ -102,16 +110,21 @@ jsPsych.plugins["continuous_report"] = (function() {
     var centerXSVG = svgWidth / 2,
       centerYSVG = svgHeight / 2;
 
-    var angleDeg = 0;
-    var curError = 360;
+    var itemLocsX = [-250, -250, 250, 250];
+    var itemLocsY = [-250, 250, -250, 250];
+    var cueIndex = (typeof trial.cueIndex === 'number' && trial.cueIndex >= 0 && trial.cueIndex < itemLocsX.length) ? trial.cueIndex : null;
+    console.log("which item: " + cueIndex)
+    var targetColorIndex = window.trialColors[cueIndex]
+    console.log("target color index:" + targetColorIndex)
 
     // create the snap paper
     var paper = Snap("#svg");
 
-
     // create the pointer. Here, it's set to appear at the top of the circle at the start of a trial.
-    var colPointer = paper.circle(300, 100, 15).attr({
+    var colPointer = paper.line(centerXSVG, centerYSVG - 200, centerXSVG, centerYSVG - 220).attr({
       stroke: "black",
+      strokeWidth: 4,
+      strokeLinecap: 'round'
     });
 
 
@@ -134,16 +147,19 @@ jsPsych.plugins["continuous_report"] = (function() {
         var imgCol = output[0];
         var curAngle = output[1];
 
-
         stimParameters.col = currColorWheel[imgCol];
         currHexColor = Snap.rgb(stimParameters.col[0], stimParameters.col[1], stimParameters.col[2]);
 
         // calculate the pointer position based on SVG coordinates
-        var pointerX = Math.round(centerXSVG + Math.cos(curAngle) * 200);
-        var pointerY = Math.round(centerYSVG + Math.sin(curAngle) * 200);
+        var pointerStartX = Math.round(centerXSVG + Math.cos(curAngle) * 170);
+        var pointerStartY = Math.round(centerYSVG + Math.sin(curAngle) * 170);
+        var pointerEndX = Math.round(centerXSVG + Math.cos(curAngle) * 250);
+        var pointerEndY = Math.round(centerYSVG + Math.sin(curAngle) * 250);
         colPointer.attr({
-          cx: pointerX,
-          cy: pointerY,
+          x1: pointerStartX,
+          y1: pointerStartY,
+          x2: pointerEndX,
+          y2: pointerEndY
         });
 
       });
@@ -152,13 +168,14 @@ jsPsych.plugins["continuous_report"] = (function() {
 
     var calculateColor = function(xPos, yPos) { //first output is the color number, second output is the current angle
       // calculate angle (done with absolute, DOM coordinates)
+      // Note that 0 starts at "East" and rotates clockwise.
       var relX = xPos - centerXDom;
       var relY = yPos - centerYDom;
       var curAngle = Math.atan2(relY, relX);
       angleDeg = curAngle / Math.PI * 180.0;
       angleDeg = (angleDeg < 0) ? angleDeg + 360 : angleDeg;
 
-      // change this to an image color
+      // change this to an integer
       var imgCol = Math.floor(angleDeg);
       return [imgCol, curAngle];
 
@@ -166,31 +183,54 @@ jsPsych.plugins["continuous_report"] = (function() {
 
 
     // create the color wheel
-    var colorWheel = paper.circle(300, 300, 200).attr({
-      stroke: "black",
-      fill: "none",
-      "stroke-width": 10,
-      cx: 300,
-      cy: 300,
-    })
+    var wheelGroup = paper.g();
+
+    for (var i = 0; i < 360; i++) {
+      var angleRad = i * Math.PI / 180;
+      var innerRadius = 200;
+      var outerRadius = 220;
+      var x1 = centerXSVG + Math.cos(angleRad) * innerRadius;
+      var y1 = centerYSVG + Math.sin(angleRad) * innerRadius;
+      var x2 = centerXSVG + Math.cos(angleRad) * outerRadius;
+      var y2 = centerYSVG + Math.sin(angleRad) * outerRadius;
+      var wheelColor = currColorWheel[i];
+      var wheelHexColor = Snap.rgb(wheelColor[0], wheelColor[1], wheelColor[2]);
+
+      wheelGroup.line(x1, y1, x2, y2).attr({
+        stroke: wheelHexColor,
+        strokeWidth: 8,
+        strokeLinecap: 'round'
+      });
+    }
+
+    paper.circle(centerXSVG, centerYSVG, 220).attr({
+      stroke: 'none',
+      fill: 'none',
+      'stroke-width': 2
+    });
 
 
     // % set the image position based on svg paper dimensions.
     // this may have to be changed depending on the size of the image. The demo images are 100 x 100.
-    var imageX = centerXSVG - 100 / 2;
-    var imageY = centerYSVG / 2 - 100 / 2;
+    var imageX = centerXSVG - 80 / 2;
+    var imageY = centerYSVG - 80 / 2;
 
-    // load in the images
+    if (cueIndex !== null) {
+      imageX = centerXSVG + itemLocsX[cueIndex] - 80 / 2;
+      imageY = centerYSVG + itemLocsY[cueIndex] - 80 / 2;
+    }
+
+    // show circle in the cued location
     var g = paper.group();
 
     Snap.load(currStim, function(fragment) {
       var element = fragment.select('#Layer_1');
       g.add(element);
       element.attr({
-        width: "100",
-        height: "100",
+        width: "80",
+        height: "80",
         x: imageX.toString(), //position of the image, as a string
-        y: imageX.toString(), //position of the image, as a string
+        y: imageY.toString(), //position of the image, as a string
         //
       });
 
@@ -214,15 +254,32 @@ jsPsych.plugins["continuous_report"] = (function() {
       var xClicked = e.pageX;
       var yClicked = e.pageY;
 
+      // Determine what the clicked color is and the true index 
       var responseOutput = calculateColor(xClicked, yClicked);
       var colorNumResponse = responseOutput[0];
       var colorResponse = currColorWheel[colorNumResponse];
+      // randomColorVal is the integer that rotates the color wheel so we subtract it.
+      var colorResponseTrueIndex = colorNumResponse + randomColorVal
+      var colorResponseTrueIndex = ((colorResponseTrueIndex % 360) + 360) % 360;
+      var correctColor = colors.colors[targetColorIndex];
+      var responseError = targetColorIndex - colorResponseTrueIndex;
+      responseError = (responseError < -180) ? responseError + 360 : responseError;
+      responseError = (responseError > 180) ? responseError - 360 : responseError;
+      
+      window.lastContinuousReportTrialData = {
+        currColorWheel: currColorWheel,
+        randomColorVal: randomColorVal,
+        targetColorIndex: targetColorIndex,
+        responseError: responseError,
+        xClicked: xClicked,
+        yClicked: yClicked,
+        responseCol: colorResponse,
+        responseInd: colorResponseTrueIndex,
+        correctCol: correctColor,
+        correctColIndex: targetColorIndex,
+        cueIndex: cueIndex
+      };
 
-      for (i = 0 ; i < colors.colors.length; i ++) {
-        if ( colors.colors[i] == colorResponse ) {
-          var trueIndex = i
-        }
-      }
       var trial_data = {
         "rt": rt,
         "stimulus": trial.stimulus,
@@ -230,10 +287,10 @@ jsPsych.plugins["continuous_report"] = (function() {
         "xClicked": xClicked,
         "yClicked": yClicked,
         "responseCol": colorResponse,
-        "responseInd":trueIndex,
-        "responseError" : trueIndex - trial.colIndex,
-        "correctCol": originalColorWheel[trial.colIndex],
-        "correctColIndex": trial.colIndex,
+        "responseInd": colorResponseTrueIndex,
+        "responseError": responseError,
+        "correctCol": correctColor,
+        "correctColIndex": targetColorIndex,
       };
 
       $(document).unbind("click.trialResponse")

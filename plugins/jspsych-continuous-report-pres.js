@@ -2,17 +2,18 @@
 
 * plugin for presenting svg images, using the snap.io plugin.
 * written by Victoria J.H. Ritvo, 2019
+* updated by William X.Q. Ngiam, 2026 (with assistance from Copilot)
 
  **/
 
 
-jsPsych.plugins["snap-keyboard-response"] = (function() {
+jsPsych.plugins["continuous-report-pres"] = (function() {
 
   var plugin = {};
 
   plugin.info = {
-    name: 'snap-keyboard-response',
-    description: 'Uses Snap.io to present images.',
+    name: 'continuous-report-pres',
+    description: 'Uses Snap.io to present the memory array in a continuous report task.',
     parameters: {
       stimulus: {
         type: jsPsych.plugins.parameterType.HTML_STRING,
@@ -67,66 +68,65 @@ jsPsych.plugins["snap-keyboard-response"] = (function() {
     // draw
     display_element.innerHTML = new_html;
 
-
     // get the current stimulus's file location
-    var currStim = 'images/stim/' + trial.stimulus + '.svg';
+    var currStim = 'images/stim/circle.svg';
 
     var svgWidth = 600;
     var svgHeight = 600;
-
+    
     // // create the svg object
-    display_element.innerHTML = "<svg id='svg', width = '" + svgWidth.toString() + "', height = '" + svgWidth.toString() + "'/svg>" +
-      '<div id="jspsych-html-keyboard-response-stimulus"></div>';
+    display_element.innerHTML = "<svg id='svg', width = '" + svgWidth.toString() + "', height = '" + svgWidth.toString() + "'/svg>";
 
     // set the center points (relative to the SVG)
     var centerXSVG = svgWidth / 2;
     var centerYSVG = svgHeight / 2;
 
-    rgbCol = colors.colors[trial.colIndex];
-    var currHexColor = Snap.rgb(rgbCol[0], rgbCol[1], rgbCol[2]);
+    // create a unique color index for each item on every trial
+    var colorPool = jsPsych.randomization.shuffleNoRepeats(
+      Array.from({ length: colors.colors.length }, function(_, i) {
+        return i;
+      })
+    );
 
-
+    var itemColIndices = colorPool.slice(0, 4);
+    window.trialColors = itemColIndices;
+    console.log(itemColIndices)
     // create the snap paper
     var paper = Snap("#svg");
-
-
-
-    // // % set the image position based on svg paper dimensions.
-    // this may have to be changed depending on the size of the image. The demo images are 100 x 100.
-
-    var imageY = centerYSVG - 100 / 2;
-
-    // // % set the image position based on svg paper dimensions.
-    // this may have to be changed depending on the size of the image. The demo images are 100 x 100.
-
-    var imageXLeft = centerXSVG - 100 / 2;
 
     // load in the images
     var g = paper.group();
 
+    var itemLocsX = [-250, -250, 250, 250];
+    var itemLocsY = [-250, 250, -250, 250];
 
-    Snap.load(currStim, function(fragment) {
-      var element = fragment.select('#Layer_1');
-      g.add(element);
-      element.attr({
-        width: "100",
-        height: "100",
-        x: imageXLeft.toString(), //position of the image, as a string
-        y: imageY.toString(), //position of the image, as a string
-        //
-      });
+    for (var thisStim = 0; thisStim < itemLocsX.length; thisStim++) {
+      var thisX = itemLocsX[thisStim] + centerXSVG - 80 / 2;
+      var thisY = itemLocsY[thisStim] + centerYSVG - 80 / 2;
+      var rgbCol = colors.colors[itemColIndices[thisStim]];
+      var currHexColor = Snap.rgb(rgbCol[0], rgbCol[1], rgbCol[2]);
 
-      // select the image itself within the svg
-      var shape = element.select('path');
-      shape.attr({
-        "fill": currHexColor
-      });
+      (function(x, y, fillColor) {
+        Snap.load(currStim, function(fragment) {
+          var element = fragment.select('#Layer_1');
+          g.add(element);
+          element.attr({
+            width: "80",
+            height: "80",
+            x: x.toString(),
+            y: y.toString()
+          });
 
+          // select the image itself within the svg
+          var shape = element.select('path');
+          shape.attr({
+            "fill": fillColor
+          });
+        });
+      })(thisX, thisY, currHexColor);
+    }
 
-    });
     var presentation_start = new Date()
-
-
 
     // store response
     var response = {
@@ -148,7 +148,7 @@ jsPsych.plugins["snap-keyboard-response"] = (function() {
       // gather the data to store for the trial
       var trial_data = {
         "rt": response.rt,
-        "stimulus": trial.stimulus,
+        "stimulus": itemColIndices,
         "key_press": response.key
       };
 
