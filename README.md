@@ -1,65 +1,37 @@
-# JSPsych Color Task Demo Experiment
+# jsPsych Continuous-Report Task Demo
 
-This is a demo jspsych experiment with a continuous report task for color memory (e.g. Zhang & Luck, 2008).
+This is a demo of the continuous-report task (also known as a delayed-estimation task) for color working memory (e.g. Zhang & Luck, 2008). This demo is "playable" [here](https://williamngiam.github.io/ContinuousReport); it consists of five trials at set-size of four, with feedback included.
 
-The entire demo experiment consists of two short tasks: 1) a "study" task where four images are presented and the participant should study the colors, followed by 2) a "recall" task where the participant uses a color wheel to select the color for each image. The whole demo takes less than a minute.
+This demo uses custom jsPsycb plugins that were adapted from [this repository by Victoria Ritvo](https://github.com/vej/DemoContinuousReport). There are [three notable plugins](plugins), designed for each stage of the continuous-report trial (`continuous-report-pres`, `continuous-report-response`, `continuous-report-feedback`) that can be customized for variations to the experiment (i.e. stimuli, set-size, timings, etc.).
 
-This is only a demo to provide the plugins to be customized for other experiments. The code would have to be adapted to fit other stimuli, task designs etc.
+## Continuous-Report Plugins
 
-## SVG Plugin
+The [custom continuous-report plugins](plugins) were adapted from the jspsych-html-keyboard-response plugin, and make use of Snap.svg library to present SVGs (see [libraries](libraries).
 
-The **jspsych-snap-keyboard-response.js** plugin is used in the first, "Study" portion of the demo. This plugin allows you to present SVG images, using the Snap.svg library. It's adapted from the jspsych-html-keyboard-response plugin.
+The [**continuous-report-pres**](plugins/jspsych-continuous-report-pres.js) plugin handles presentation of the memory array. It is currently hard-coded to present four randomly selected colors (set in [colors.js](colors.js)) on each trial; one presented in each quadrant of the screen.
 
+The [**continuous-report-response**](plugins/jspsych-continuous-report-response.js) plugin handles the response. A random item is cued on each trial (set in `trialVariables` in [index.html](index.html)) using a location cue. A color wheel showing all possible colors (randomly rotated on each trial) is displayed in the middle of the screen; a pointer on the wheel tracks the mouse cursor and displays the mouse-over color on the location cue. A response is locked in by clicking anywhere on the screen.
 
-## Continuous Report Plugin
- The **jspsych-continuous-report.js** plugin is used in the second, "Recall" portion of the demo. This particular experiment is coded with a color wheel, but the plugin could be changed to work for recall of orientation, spatial location, etc. This plugin also uses snap.svg in order to present the image and change the color.
-
-As the cursor moves around the wheel, the central svg image changes color. Selecting with the cursor records the selected color.
-
-The selected color and error are recorded (the correct color is given within the task.html script)
-
-<img src="readme_contents/color_wheel_trial.gif"  width=50% />
-
-
-
+The [**continuous-report-feedback**](plugins/jspsych-continuous-report-feedback.js) plugin handles the feedback (optional for the task design). The clicked response is indicated with a red pointer line on the color wheel; the correct color is indicated with a green pointer line on the color wheel. A points value is displayed in the middle of the screen; calculated as 100 minus the absolute error. These points can be added across the trials and displayed to the participant (currently coded within the index.html itself). 
 
 ## Prerequisites
 
-This code is made to demonstrate custom plugins for jspsych.
+The following is provided in the [libraries](libraries). This was written for an early version of jsPsych – I will be updating for jsPsych v8 soon.
 
-* [jspsych](https://www.jspsych.org/)  - Javascript library for running behavioral experiments in a web browser.
+* [jsPsych](https://www.jspsych.org/)  - Javascript library for running behavioral experiments in a web browser.
 * [JQuery](https://jquery.com/) - Javascript library.
 * [Snap.svg](http://snapsvg.io/) Javascript library for handling svgs, vector graphics (necessary for changing the image colors).
-* [Psiturk](https://psiturk.org/) - (optional, not required, but this can work with psiturk if that's how you're getting the experiment on mTurk).
-
-
-## Note on Getting Started
-This project loads images (the svg files within the images folder), and if you are just running this from local files and not with https, you will get the error about cross origin requests. When it's running online, it'll work. But if you want to test locally and not run into this error, follow the instructions on [this](https://stackoverflow.com/questions/10752055/cross-origin-requests-are-only-supported-for-http-error-when-loading-a-local) page to open up a local web server to let your browser render local files.
-
-
-As in, change directory to the experiment folder, and start a Python web server using either ``` python -m SimpleHTTPServer ``` or ```  python3 -m http.server ```. This will start a web server to host your entire directory listing at ```http://localhost:8000```. From there, run ***task.html***
 
 ## Contents
 
-
-#### task.html
-This is the main task. Run this to start the demo experiment (make note of the "note" above if you're running this locally). All other files are called within this one.
-
-
-#### plugins/jspsych-continous-report.js
-This is the custom plugin that runs the color wheel, recall task. It's called within task.html.
-
-#### plugins/jspsych-snap-keyboard-response.js
-This is the custom plugin that presents svg images during the study task of the demo. It's called within task.html.
+#### index.html
+This is the main task. Run this to start the demo experiment. All other files are called within this one.
 
 #### colors.js
 This is the array of colors to be used for the color wheel.
 
-#### images/stim/1-4.svg
-A couple demo svg files for this experiment.
+#### images/stim/circle.svg
+A SVG of a white circle for this experiment.
 
 #### css/custom.css
 This is not a necessary file, but task.html loads this for some specifications for this particular demo.
-
-## What is not included
-This demo does not include any analysis scripts. The correct color and reported color are recorded, for you to be able to run analyses. I recommend the [MemToolbox](http://visionlab.github.io/MemToolbox/).
