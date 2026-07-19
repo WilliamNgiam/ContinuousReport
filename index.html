@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>My experiment</title>
+        <title>Continuous Report</title>
 
         <!-- load relevant libraries -->
         <script src="libraries/jspsych.js"></script>
@@ -9,52 +9,75 @@
         <script src="libraries/Snap.svg-0.5.1/dist/snap.svg.js"></script>
 
         <!-- load the jspsych custom plugins.   -->
-        <script src="plugins/jspsych-continuous-report-pres.js"></script>
-        <script src="plugins/jspsych-continuous-report-response.js"></script>
-        <script src="plugins/jspsych-continuous-report-feedback.js"></script>
+        <script src="plugins/plugin-continuous-report-pres.js"></script>
+        <script src="plugins/plugin-continuous-report-response.js"></script>
+        <script src="plugins/plugin-continuous-report-feedback.js"></script>
 
         <!-- load other jspsych plugins used in this demo.   -->
-        <script src="plugins/jspsych-html-keyboard-response.js"></script>
-        <script src="plugins/jspsych-instructions.js"></script>
+        <script src="plugins/plugin-fullscreen.js"></script>
+        <script src="plugins/plugin-instructions.js"></script>
+        <script src="plugins/plugin-html-keyboard-response.js"></script>
 
         <!-- load colors for color wheel.   -->
         <script src="colors.js"></script>
 
         <!-- load css files.   -->
-
         <link rel="stylesheet" href="css/jspsych.css" type="text/css" />
         <link rel="stylesheet" href="css/custom.css" type="text/css" />
-       </head>
+      
+      </head>
 
     <body></body>
 </html>
 
 
 <script>
+// Initialise jsPsych
+var jsPsych = initJsPsych({
+  preload_images: ['images/stim/circle.svg'],
+  show_preload_progress_bar: false,
+  on_finish: function() {
+     jsPsych.data.displayData();
+  }
+});
 
 var NUMBER_TRIALS = 5;
 
+var trialVariables = [];
+for (var i = 0; i < NUMBER_TRIALS; i++) {
+  trialVariables.push({
+    stimulus: 'circle',
+    cueIndex: Math.floor(Math.random() * 4)
+  });
+}
+console.log(trialVariables)
+
+var go_fullscreen = {
+  type: jsPsychFullscreen,
+  fullscreen_mode: true
+};
+
 var instructions = {
-  type: 'instructions',
-  pages: ['DEMO MEMORY-CUE TASK </br></br> Each trial shows a memory array of four items with unique colors for 500 ms, then a brief fixation cross, then a response phase where you report the color of the cued item using the continuous wheel. </br></br> Ready? </br></br>'],
+  type: jsPsychInstructions,
+  pages: ['<div style="max-width:100ch; margin:0 auto; text-align:center; line-height:1.5;">DEMO MEMORY-CUE TASK<br><br>Each trial shows a memory array of four items with unique colors for 500 ms, then a brief fixation cross, then a response phase where you report the color of the cued item using the continuous wheel.<br><br>Ready?</div><br><br>'],
   show_clickable_nav: true
 };
 
 var fixation = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: '<div style="font-size:60px;">+</div>',
-  choices: jsPsych.NO_KEYS,
+  choices: "NO_KEYS",
   trial_duration: 500,
   data: {
     test_part: 'fixation'
   }
 };
 
-var memoryArray = {
-  type: 'continuous-report-pres',
+var stim = {
+  type: jsPsychContinuousReportPres,
   stimulus: jsPsych.timelineVariable('stimulus'),
   trial_duration: 1000,
-  choices: jsPsych.NO_KEYS,
+  choices: "NO_KEYS",
   data: {
     test_part: 'memory_array',
     cue_index: jsPsych.timelineVariable('cueIndex')
@@ -62,7 +85,7 @@ var memoryArray = {
 };
 
 var response = {
-  type: 'continuous-report-response',
+  type: jsPsychContinuousReportResponse,
   stimulus: jsPsych.timelineVariable('stimulus'),
   colIndex: jsPsych.timelineVariable('colIndex'),
   cueIndex: jsPsych.timelineVariable('cueIndex'),
@@ -73,11 +96,11 @@ var response = {
 };
 
 var feedback = {
-  type: 'continuous-report-feedback',
+  type: jsPsychContinuousReportFeedback,
   stimulus: jsPsych.timelineVariable('stimulus'),
   cueIndex: jsPsych.timelineVariable('cueIndex'),
   trial_duration: 1500,
-  choices: jsPsych.NO_KEYS,
+  choices: "NO_KEYS",
   data: {
     test_part: 'feedback',
     cue_index: jsPsych.timelineVariable('cueIndex')
@@ -85,17 +108,22 @@ var feedback = {
 };
 
 var blank = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: '',
-  choices: jsPsych.NO_KEYS,
+  choices: "NO_KEYS",
   trial_duration: 1000,
   data: {
     test_part: 'fixation'
   }
 };
 
+var memoryCueProcedure = {
+  timeline: [fixation, stim, blank, response, feedback, blank],
+  timeline_variables: trialVariables
+};
+
 var finalScoreScreen = {
-  type: 'html-keyboard-response',
+  type: jsPsychHtmlKeyboardResponse,
   stimulus: function() {
     var responseTrials = jsPsych.data.get().filter({test_part: 'continuous_report'}).values();
     var totalScore = responseTrials.reduce(function(sum, trial) {
@@ -115,25 +143,17 @@ var finalScoreScreen = {
   }
 };
 
-var trialVariables = [];
-for (var i = 0; i < NUMBER_TRIALS; i++) {
-  trialVariables.push({
-    stimulus: 'circle',
-    cueIndex: Math.floor(Math.random() * 4)
-  });
-}
-
-var memoryCueProcedure = {
-  timeline: [fixation, memoryArray, blank, response, feedback, blank],
-  timeline_variables: trialVariables
+var close_fullscreen = {
+  type: jsPsychFullscreen,
+  fullscreen_mode: false
 };
 
-jsPsych.init({
-  timeline: [instructions, memoryCueProcedure, finalScoreScreen],
-  preload_images: ['images/stim/circle.svg'],
-  show_preload_progress_bar: false,
-  on_finish: function() {
-     jsPsych.data.displayData();
-  }
-});
+var timeline = []
+var task_procedure = {
+  timeline: [go_fullscreen, instructions, memoryCueProcedure, finalScoreScreen, close_fullscreen]
+}
+timeline.push(task_procedure)
+
+/* start the experiment */
+jsPsych.run(timeline);
 </script>
