@@ -123,6 +123,9 @@ var jsPsychContinuousReportResponse = (function (jspsych) {
       centerXDom = rect.x + centerXSVG;
       centerYDom = rect.y + centerYSVG;
 
+      // record trial start time to compute response time (rt)
+      const startTime = (typeof performance !== 'undefined') ? performance.now() : Date.now();
+
       const onMouseMove = (e) => updatePointer(e.pageX, e.pageY);
       document.addEventListener('mousemove', onMouseMove);
 
@@ -133,6 +136,7 @@ var jsPsychContinuousReportResponse = (function (jspsych) {
         const colorResponseTrueIndex = ((colorNumResponse + randomColorVal) % 360 + 360) % 360;
         const responseError = ((targetColorIndex - colorResponseTrueIndex + 180) % 360 + 360) % 360 - 180;
         const scoreValue = 100 - Math.abs(responseError);
+        const rt = Math.round(((typeof performance !== 'undefined') ? performance.now() : Date.now()) - startTime);
 
         window.lastContinuousReportTrialData = {
           currColorWheel,
@@ -141,6 +145,7 @@ var jsPsychContinuousReportResponse = (function (jspsych) {
           responseError,
           xClicked: e.pageX,
           yClicked: e.pageY,
+          rt,
           responseCol: colorResponse,
           responseInd: colorResponseTrueIndex,
           correctCol: colors.colors[targetColorIndex],
@@ -161,7 +166,8 @@ var jsPsychContinuousReportResponse = (function (jspsych) {
           responseInd: colorResponseTrueIndex,
           responseCol: colorResponse,
           xClicked: e.pageX,
-          yClicked: e.pageY
+          yClicked: e.pageY,
+          rt
         });
       };
 
