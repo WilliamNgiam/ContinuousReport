@@ -71,6 +71,15 @@ var jsPsychContinuousReportPres = (function (jspsych) {
         });
       });
 
+      // add a centered white fixation '+' to match the HTML fixation (font-size:60px)
+      const fixationText = paper.text(centerXSVG, centerYSVG, '+').attr({
+        fill: 'white',
+        fontSize: 60,
+        fontFamily: 'OpenSans',
+        textAnchor: 'middle',
+        dominantBaseline: 'central'
+      });
+
       this.jsPsych.pluginAPI.setTimeout(() => {
         display_element.innerHTML = '';
         this.jsPsych.finishTrial({

@@ -60,16 +60,16 @@ var go_fullscreen = {
 var instructions = {
   type: jsPsychInstructions,
   pages: [
-    '<div style="max-width:100ch; margin:0 auto; text-align:center; line-height:1.5;">DEMO COLOR MEMORY TASK<br><br>On each trial, you will see four items with unique colors for 1000 ms. After a brief delay, one of the items will be cued with a circle. Click the color on the wheel that you think the item was.',
-    '<div style="max-width:100ch; margin:0 auto; text-align:center; line-height:1.5;">You will get points based on how close you were. Get right on, you get 100 points. If you are way off, you might lose points!<br><br>Ready?</div>'],
+    '<div style="max-width:100ch; margin:0 auto; text-align:center; line-height:1.5;">DEMO COLOR MEMORY TASK<br><br>On each trial, you will see four items with unique colors for 1000 ms. After a brief delay, one of the items will be cued with a circle. Click the color on the wheel that you think the item was.<br></div>',
+    '<div style="max-width:100ch; margin:0 auto; text-align:center; line-height:1.5;">You will get points based on how close you were. Get right on, you get 100 points. If you are way off, you might lose points!<br><br>Ready?<br></div>'],
   show_clickable_nav: true
 };
 
 var fixation = {
   type: jsPsychHtmlKeyboardResponse,
-  stimulus: '<div style="font-size:60px;">+</div>',
+  stimulus: '<div style="height:600px; display:flex; align-items:center; justify-content:center;"><div style="font-size:63.8px; line-height:1; transform: translateY(-1.75px);">+</div></div>',
   choices: "NO_KEYS",
-  trial_duration: 500,
+  trial_duration: 750,
   data: {
     test_part: 'fixation'
   }
