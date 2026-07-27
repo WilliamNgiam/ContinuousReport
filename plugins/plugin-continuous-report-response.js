@@ -1,8 +1,20 @@
 /**
 
- * plugin for implementing a continuous report task, using the snap.io plugin.
- * written by Victoria J.H. Ritvo, 2019
- * adapted by William X.Q. Ngiam, 2026 (with assistance from Copilot)
+ * Plugin for getting a response on a continuous-report memory task.
+ *
+ * A target item is cued with a location cue (a circle). A circular color wheel 
+ * is generated at the centre of the screen, with a random rotation on each trial. 
+ * On a laptop device, a pointer on the wheel tracks with mouse cursor location, 
+ * updating the location cue with the potential response value. The participant
+ * clicks on the screen (or the color wheel) to lock their response in. On a
+ * tablet device (like a phone), there is no cursor to track but a response can
+ * still be recorded by tapping the screen (such as on the color wheel.)
+ * 
+ * Requires colors to be defined by colors.js.
+ * 
+ * Original plugin for continuous report, using the snap.io plugin was written 
+ * by Victoria J.H. Ritvo, 2019
+ * Plugin adapted by William X.Q. Ngiam, 2026 (with assistance from Copilot)
 
  **/
 

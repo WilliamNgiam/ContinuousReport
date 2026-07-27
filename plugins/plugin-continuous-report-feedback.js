@@ -1,8 +1,16 @@
 /**
 
- * plugin for implementing a continuous report task, using the snap.io plugin.
- * written by Victoria J.H. Ritvo, 2019
- * adapted by William X.Q. Ngiam, 2026 (with assistance from Copilot)
+ * Plugin for providing feedback on a continuous-report memory task.
+ *
+ * The colour response wheel remains on the screen from the previous trial.
+ * An added red line indicates the participant's response, and a green line 
+ * indicates the correct target value. A number is shown in the center indicating 
+ * the "score" on that trial; the score is calculated as 100 minus the 
+ * absolute error.
+ * 
+ * Original plugin for continuous report, using the snap.io plugin was written 
+ * by Victoria J.H. Ritvo, 2019
+ * Plugin adapted by William X.Q. Ngiam, 2026 (with assistance from Copilot)
 
  **/
 
@@ -98,7 +106,7 @@ var jsPsychContinuousReportFeedback = (function (jspsych) {
 
       this.jsPsych.pluginAPI.setTimeout(() => {
         display_element.innerHTML = '';
-        this.jsPsych.finishTrial({ score: scoreValue, responseError });
+        this.jsPsych.finishTrial({ score: scoreValue });
       }, trial.trial_duration || 1500);
     }
   }

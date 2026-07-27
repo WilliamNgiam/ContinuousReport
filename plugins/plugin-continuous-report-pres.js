@@ -1,8 +1,15 @@
 /**
 
-* plugin for presenting svg images, using the snap.io plugin.
-* written by Victoria J.H. Ritvo, 2019
-* updated by William X.Q. Ngiam, 2026 (with assistance from Copilot)
+ * Plugin for presenting color stimuli on a continuous-report memory task.
+ *
+ * Four circles with randomly selected colour values are shown in fixed locations 
+ * on the screen (in quadrants). 
+ * 
+ * Requires colors to be defined in color.js
+ * 
+ * Original plugin for continuous report, using the snap.io plugin was written 
+ * by Victoria J.H. Ritvo, 2019
+ * Plugin adapted by William X.Q. Ngiam, 2026 (with assistance from Copilot)
 
  **/
 
@@ -37,6 +44,7 @@ var jsPsychContinuousReportPres = (function (jspsych) {
       const centerYSVG = svgHeight / 2;
       const paper = Snap('#svg');
 
+      // fixed locations of items in quadrant relative to screen centre
       const itemLocsX = [-250, -250, 250, 250];
       const itemLocsY = [-250, 250, -250, 250];
 
@@ -57,8 +65,8 @@ var jsPsychContinuousReportPres = (function (jspsych) {
       const currStim = 'images/stim/circle.svg';
 
       itemLocsX.forEach((x, index) => {
-        const thisX = centerXSVG + x - 80 / 2;
-        const thisY = centerYSVG + itemLocsY[index] - 80 / 2;
+        const thisX = centerXSVG + x - 80 / 2; // adjust for item size (see width and height attr below)
+        const thisY = centerYSVG + itemLocsY[index] - 80 / 2; // adjust for item size (see width and height attr below)
         const rgbCol = colors.colors[itemColIndices[index]];
         const currHexColor = Snap.rgb(rgbCol[0], rgbCol[1], rgbCol[2]);
 
