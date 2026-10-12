@@ -48,17 +48,54 @@ var jsPsychContinuousReportPres = (function (jspsych) {
       const itemLocsX = [-250, -250, 250, 250];
       const itemLocsY = [-250, 250, -250, 250];
 
-      // get unique color indices for this trial
-      const colorPool = (function shuffle(arr) {
-        const copy = arr.slice();
-        for (let i = copy.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [copy[i], copy[j]] = [copy[j], copy[i]];
-        }
-        return copy;
-      })(Array.from({ length: colors.colors.length }, (_, i) => i));
+      // Sample unique color indices with the minimum circular distance between hues.
+      function sampleColorIndices(arr, sampleSize, minDiff) {
+        const colorCount = arr.length;
+        const distance = (a, b) => {
+          const difference = Math.abs(a - b);
+          return Math.min(difference, colorCount - difference);
+        };
 
-      const itemColIndices = colorPool.slice(0, 4);
+        function search(available, selected) {
+          if (selected.length === sampleSize) {
+            return selected;
+          }
+
+          const shuffled = available.slice();
+          for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+          }
+
+          for (const index of shuffled) {
+            if (!selected.every(selectedIndex => distance(index, selectedIndex) >= minDiff)) {
+              continue;
+            }
+
+            const remaining = shuffled.filter(candidate =>
+              candidate !== index && distance(candidate, index) >= minDiff
+            );
+            const result = search(remaining, [...selected, index]);
+            if (result) {
+              return result;
+            }
+          }
+
+          return null;
+        }
+
+        const result = search(arr, []);
+        if (!result) {
+          throw new Error(`Unable to sample ${sampleSize} colors with a minimum difference of ${minDiff}.`);
+        }
+        return result;
+      }
+
+      const itemColIndices = sampleColorIndices(
+        Array.from({ length: colors.colors.length }, (_, i) => i),
+        4,
+        20
+      );
       window.trialColors = itemColIndices;
 
       const g = paper.group();
